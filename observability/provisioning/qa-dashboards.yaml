@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: "QA dashboards"
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /qa-dashboards
+      foldersFromFilesStructure: false

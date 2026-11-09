@@ -1,0 +1,39 @@
+schemaVersion: "2"
+kind: mixin
+name: playwright-qa
+version: "0.1.0"
+displayName: Playwright QA
+description: Playwright test tooling for the QA team (Chromium, Node dependencies, restricted network).
+
+requires:
+  agent: shell
+
+environment:
+  variables:
+    CI: "1"
+    PLAYWRIGHT_BROWSERS_PATH: "/home/agent/.cache/ms-playwright"
+    # Telemetry goes to the observability sandbox's published OTLP port on the host.
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://host.docker.internal:4318"
+    OTEL_SERVICE_NAME: "playwright-tests"
+
+# Deny-by-default friendly: list only what the tests need.
+# Add the application-under-test host here (or per team via a second mixin).
+permissions:
+  network:
+    allow:
+      - "registry.npmjs.org:443"
+      - "cdn.playwright.dev:443"
+      - "playwright.download.prss.microsoft.com:443"
+      - "github.com:443"
+      - "playwright.dev:443"
+      # Host-side OTLP receiver (observability sandbox). host.docker.internal is resolved to localhost.
+      - "localhost:4318"
+
+setup:
+  install:
+    - command: "command -v node >/dev/null || (apt-get update && apt-get install -y nodejs npm)"
+      user: "0"
+      description: Ensure Node.js is present
+    - command: "mkdir -p /usr/local/share/npm-global/lib && npx --yes playwright@1.65.0 install-deps chromium"
+      user: "0"
+      description: Install Chromium system libraries
